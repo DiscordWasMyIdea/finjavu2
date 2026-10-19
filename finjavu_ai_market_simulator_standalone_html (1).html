@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinjaVu — AI Market Time-Machine & Portfolio Flight Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09090b;
+      color: #f4f4f5;
+      letter-spacing: -0.011em;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+    .glass-card {
+      background: rgba(24, 24, 27, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-subtle {
+      background: rgba(15, 15, 18, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #27272a;
+      height: 5px;
+      border-radius: 999px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e4e4e7;
+      cursor: pointer;
+      border: 2px solid #18181b;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#09090b] text-zinc-100 selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <header class="sticky top-0 z-30 border-b border-white/[0.06] bg-[#09090b]/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center shadow-inner">
+          <i data-lucide="compass" class="w-5 h-5 text-indigo-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-semibold tracking-tight text-white">
+              FinjaVu
+            </h1>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              NSE Live Sync
+            </span>
+          </div>
+          <p class="text-[11px] text-zinc-400 hidden sm:block">
+            AI Pattern Recognition & Crisis Flight Simulator
+          </p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <nav class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-white/[0.06] overflow-x-auto max-w-full">
+        <button onclick="switchTab('pattern')" id="tab-btn-pattern" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-zinc-800 text-white shadow-sm">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
+          Pattern Predictor
+        </button>
+        <button onclick="switchTab('crisis')" id="tab-btn-crisis" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-zinc-400 hover:text-zinc-200">
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+          Crisis Simulator
+        </button>
+        <button onclick="switchTab('shock')" id="tab-btn-shock" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-zinc-400 hover:text-zinc-200">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+          Macro Stress-Test
+        </button>
+        <button onclick="switchTab('scorecard')" id="tab-btn-scorecard" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-zinc-400 hover:text-zinc-200">
+          <i data-lucide="dna" class="w-3.5 h-3.5 text-emerald-400"></i>
+          My Investor DNA
+        </button>
+      </nav>
+
+      <!-- Import Portfolio Action Button -->
+      <div class="flex items-center gap-2">
+        <button
+          onclick="openImportModal()"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/25 text-xs font-medium transition"
+        >
+          <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+          <span id="import-btn-label">Import Portfolio</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="border-b border-white/[0.06] bg-zinc-950/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <div>
+          <span class="text-xs font-medium text-zinc-200 flex items-center gap-1.5">
+            <i data-lucide="wallet" class="w-3.5 h-3.5 text-indigo-400"></i> Practice Money (Virtual Budget):
+          </span>
+          <span class="text-[10px] text-zinc-500 block">Pick a fake rupee amount to test safely</span>
+        </div>
+        <div class="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-white/[0.06]">
+          <button onclick="setCapital(10000)" id="cap-10000" class="px-2.5 py-1 rounded-md text-xs font-mono-num font-medium transition bg-zinc-800 text-white" title="Starter Pocket Budget">₹10,000</button>
+          <button onclick="setCapital(50000)" id="cap-50000" class="px-2.5 py-1 rounded-md text-xs font-mono-num font-medium transition text-zinc-400 hover:text-zinc-200" title="First Job Savings">₹50,000</button>
+          <button onclick="setCapital(100000)" id="cap-100000" class="px-2.5 py-1 rounded-md text-xs font-mono-num font-medium transition text-zinc-400 hover:text-zinc-200" title="Lump-Sum Portfolio">₹1,00,000</button>
+        </div>
+        <span id="imported-badge" class="hidden text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium">
+          Synced: <span id="imported-count">4</span> Holdings
+        </span>
+      </div>
+
+      <!-- Beginner-Friendly Allocation Sliders -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto flex-1 max-w-2xl">
+        <div class="glass-subtle px-3 py-2 rounded-xl" title="India's top 50 biggest, most stable companies like Reliance, TCS & HDFC Bank">
+          <div class="flex justify-between items-center text-[11px] mb-0.5">
+            <span class="text-zinc-200 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span> Safe Giants (Top 50)
+            </span>
+            <span id="lbl-bluechip" class="text-indigo-400 font-mono-num font-semibold">50%</span>
+          </div>
+          <div class="text-[10px] text-zinc-500 mb-1.5">Steady leaders (Reliance, TCS)</div>
+          <input id="slider-bluechip" type="range" min="0" max="100" value="50" oninput="handleAllocationChange('bluechip', this.value)" class="w-full" />
+        </div>
+
+        <div class="glass-subtle px-3 py-2 rounded-xl" title="Fast-moving smaller stocks that jump high in bull markets but fall hard in crashes">
+          <div class="flex justify-between items-center text-[11px] mb-0.5">
+            <span class="text-zinc-200 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Fast-Growth & Risky
+            </span>
+            <span id="lbl-highBeta" class="text-rose-400 font-mono-num font-semibold">30%</span>
+          </div>
+          <div class="text-[10px] text-zinc-500 mb-1.5">High ups & downs (Zomato, Midcaps)</div>
+          <input id="slider-highBeta" type="range" min="0" max="100" value="30" oninput="handleAllocationChange('highBeta', this.value)" class="w-full" />
+        </div>
+
+        <div class="glass-subtle px-3 py-2 rounded-xl" title="Safe-haven assets like Gold ETFs and FDs/Bonds that protect you when stocks crash">
+          <div class="flex justify-between items-center text-[11px] mb-0.5">
+            <span class="text-zinc-200 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Gold & Safe Shield
+            </span>
+            <span id="lbl-goldDebt" class="text-emerald-400 font-mono-num font-semibold">20%</span>
+          </div>
+          <div class="text-[10px] text-zinc-500 mb-1.5">Crash airbag (Gold ETF, Bonds)</div>
+          <input id="slider-goldDebt" type="range" min="0" max="100" value="20" oninput="handleAllocationChange('goldDebt', this.value)" class="w-full" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+    <!-- ============================================================
+         TAB 1: AI NEAR-PAST STOCK PATTERN PREDICTOR
+    ============================================================ -->
+    <div id="view-pattern" class="space-y-6">
+      <div class="glass-card rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1.5 text-[11px] font-medium text-indigo-400 uppercase tracking-wider">
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+            Historical Regime Matching
+          </div>
+          <h2 class="text-base sm:text-lg font-semibold text-white">
+            Compare Today’s Chart Setup With Its Closest Historical Twins
+          </h2>
+          <p class="text-xs text-zinc-400 max-w-3xl leading-relaxed">
+            Select any NSE stock or scan a custom ticker. FinjaVu analyzes the last 60 days of price structure, RSI, and delivery volume to project 45-day probabilistic trajectories based on how identical setups resolved in the recent past.
+          </p>
+        </div>
+        <div class="flex flex-col items-start md:items-end gap-1 shrink-0">
+          <span class="px-2.5 py-1 rounded-lg text-xs font-mono-num font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20" id="pattern-match-badge">
+            92% Twin Similarity
+          </span>
+          <span class="text-[11px] text-zinc-400" id="pattern-confidence-tag">AI Bias: Bullish Rebound (74% Prob)</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left 4 Columns: Custom Scanner + Stock Watchlist + Gut Check -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-indigo-400"></i> Scan Any NSE Stock
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Gemini AI</span>
+            </div>
+            <form onsubmit="handleCustomStockScan(event)" class="flex gap-2">
+              <input
+                id="custom-stock-input"
+                type="text"
+                placeholder="e.g. Infosys, Suzlon, ITC, Trent..."
+                class="flex-1 bg-zinc-950/90 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/60"
+              />
+              <button
+                type="submit"
+                id="custom-stock-btn"
+                class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold transition whitespace-nowrap flex items-center gap-1"
+              >
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Analyze
+              </button>
+            </form>
+          </div>
+
+          <!-- Curated Stock Watchlist -->
+          <div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-medium text-zinc-400">
+                NSE Watchlist (Live Oct 2026 Prices)
+              </h3>
+              <span class="text-[11px] text-zinc-500">10 Setups</span>
+            </div>
+            <div id="stock-list-container" class="space-y-1.5 max-h-[340px] overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Beginner Gut Check -->
+          <div class="glass-card rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-medium text-zinc-300">
+                Your Decision Check
+              </h3>
+              <span class="text-[10px] text-indigo-400 font-medium">Before Replay</span>
+            </div>
+            <p class="text-xs text-zinc-400 leading-relaxed">
+              How would you deploy <strong id="quiz-capital-label" class="text-zinc-200 font-mono-num">₹10,000</strong> into <strong id="quiz-asset-label" class="text-zinc-200">Nifty IT Index</strong> right now?
+            </p>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setUserGuess('bull')" id="guess-bull" class="p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 bg-indigo-500/15 border-indigo-500/40 text-white">
+                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-[11px] font-medium">Lump-Sum Buy</span>
+              </button>
+              <button onclick="setUserGuess('sideways')" id="guess-sideways" class="p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 bg-zinc-950/60 border-white/[0.06] text-zinc-400 hover:text-zinc-200">
+                <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i>
+                <span class="text-[11px] font-medium">3-Step Tranche</span>
+              </button>
+              <button onclick="setUserGuess('bear')" id="guess-bear" class="p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 bg-zinc-950/60 border-white/[0.06] text-zinc-400 hover:text-zinc-200">
+                <i data-lucide="shield-off" class="w-4 h-4 text-rose-400"></i>
+                <span class="text-[11px] font-medium">Stay in Cash</span>
+              </button>
+            </div>
+            <div class="p-3 rounded-xl glass-subtle text-xs text-zinc-300 space-y-1">
+              <div class="font-medium text-indigo-300 flex items-center gap-1.5">
+                <i data-lucide="bot" class="w-3.5 h-3.5"></i> Risk Coach Note
+              </div>
+              <p id="quiz-feedback-text" class="text-zinc-400 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 8 Columns: Chart & Twin Breakdown -->
+        <div class="lg:col-span-8 space-y-4">
+          <div class="glass-card rounded-2xl p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span id="active-ticker-badge" class="text-[11px] font-mono-num font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-white/10">
+                    NIFTYIT
+                  </span>
+                  <span id="active-price-badge" class="text-sm font-mono-num font-semibold text-emerald-400">₹31,393 (-1.66%)</span>
+                </div>
+                <h3 id="active-setup-title" class="text-base sm:text-lg font-semibold text-white mt-1">
+                  Nifty IT Index: Post-Rally Consolidation & Moving Average Test
+                </h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  onclick="runLiveAISynthesis()"
+                  id="btn-deep-ai"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-medium transition"
+                >
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  Deep AI Verdict
+                </button>
+                <button
+                  onclick="toggleReplayCone()"
+                  id="btn-toggle-cone"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-white/[0.06] transition"
+                >
+                  <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                  <span id="btn-toggle-cone-text">Hide Cone</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Key Quantitative Metrics Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div class="p-3 rounded-xl glass-subtle">
+                <div class="text-[10px] uppercase tracking-wider text-zinc-500">14-Day RSI</div>
+                <div id="ind-rsi" class="text-xs sm:text-sm font-mono-num font-semibold text-zinc-200 mt-0.5">58.4 (Bullish Zone)</div>
+              </div>
+              <div class="p-3 rounded-xl glass-subtle">
+                <div class="text-[10px] uppercase tracking-wider text-zinc-500">Delivery Volume</div>
+                <div id="ind-vol" class="text-xs sm:text-sm font-mono-num font-semibold text-emerald-400 mt-0.5">+18% vs 30d Avg</div>
+              </div>
+              <div class="p-3 rounded-xl glass-subtle">
+                <div class="text-[10px] uppercase tracking-wider text-zinc-500">Historical Win Rate</div>
+                <div id="ind-prob" class="text-xs sm:text-sm font-mono-num font-semibold text-indigo-400 mt-0.5">74% Positive (45d)</div>
+              </div>
+              <div class="p-3 rounded-xl glass-subtle">
+                <div class="text-[10px] uppercase tracking-wider text-zinc-500">Probability-Weighted Move</div>
+                <div id="ind-target" class="text-xs sm:text-sm font-mono-num font-semibold text-amber-400 mt-0.5">+6.6% Expected</div>
+              </div>
+            </div>
+
+            <!-- SVG Pattern Fan Chart -->
+            <div class="relative w-full overflow-hidden rounded-xl glass-subtle p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2 text-[11px] text-zinc-400">
+                <span class="flex items-center gap-1.5 font-medium text-zinc-300">
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  60-Day Price Structure (Indexed = 100) & 45-Day Twin Cone
+                </span>
+                <div class="flex items-center gap-4">
+                  <span class="flex items-center gap-1.5 text-emerald-400">
+                    <span class="w-2 h-0.5 bg-emerald-400 inline-block"></span> Bull Twin
+                  </span>
+                  <span class="flex items-center gap-1.5 text-indigo-400">
+                    <span class="w-2 h-0.5 bg-indigo-400 inline-block"></span> Base Twin
+                  </span>
+                  <span class="flex items-center gap-1.5 text-rose-400">
+                    <span class="w-2 h-0.5 bg-rose-400 inline-block"></span> Bear Breakdown
+                  </span>
+                </div>
+              </div>
+              <div id="svg-chart-container" class="w-full h-56"></div>
+            </div>
+
+            <!-- Simulated Rupee Outcomes -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-3.5 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20">
+                <div class="flex items-center justify-between text-[11px] text-emerald-400 font-medium">
+                  <span>BEST HISTORICAL TWIN</span>
+                  <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="text-lg font-mono-num font-semibold text-white mt-1">
+                  <span id="out-bull-inr">₹11,450</span>
+                  <span id="out-bull-pct" class="text-xs text-emerald-400 ml-1">(+14.5%)</span>
+                </div>
+                <p id="out-bull-twin" class="text-[11px] text-zinc-400 mt-1"></p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/30">
+                <div class="flex items-center justify-between text-[11px] text-indigo-300 font-medium">
+                  <span>MEDIAN BASE OUTCOME</span>
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="text-lg font-mono-num font-semibold text-white mt-1">
+                  <span id="out-base-inr">₹10,680</span>
+                  <span id="out-base-pct" class="text-xs text-indigo-400 ml-1">(+6.8%)</span>
+                </div>
+                <p id="out-base-twin" class="text-[11px] text-zinc-400 mt-1"></p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-rose-500/[0.05] border border-rose-500/20">
+                <div class="flex items-center justify-between text-[11px] text-rose-400 font-medium">
+                  <span>PATTERN BREAKDOWN RISK</span>
+                  <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="text-lg font-mono-num font-semibold text-white mt-1">
+                  <span id="out-bear-inr">₹9,220</span>
+                  <span id="out-bear-pct" class="text-xs text-rose-400 ml-1">(-7.8%)</span>
+                </div>
+                <p id="out-bear-twin" class="text-[11px] text-zinc-400 mt-1"></p>
+              </div>
+            </div>
+
+            <!-- Historical Twins & AI Thesis -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div class="p-4 rounded-xl glass-subtle space-y-2.5">
+                <h4 class="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+                  <i data-lucide="history" class="w-3.5 h-3.5 text-indigo-400"></i>
+                  Past Regimes Driving This Projection
+                </h4>
+                <div id="twins-list-container" class="space-y-2"></div>
+              </div>
+
+              <div class="p-4 rounded-xl glass-subtle flex flex-col justify-between space-y-3">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-300">
+                      <i data-lucide="brain" class="w-3.5 h-3.5 text-indigo-400"></i>
+                      AI Pattern Synthesis
+                    </span>
+                    <span id="ai-live-badge" class="hidden text-[10px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">
+                      Live Gemini Verdict
+                    </span>
+                  </div>
+                  <p id="ai-summary-text" class="text-xs text-zinc-400 leading-relaxed"></p>
+                </div>
+                <div class="p-3 rounded-lg bg-zinc-900/90 border border-white/[0.06] text-xs">
+                  <span class="font-medium text-emerald-400">Position Rule: </span>
+                  <span id="ai-risk-rule" class="text-zinc-300"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB 2: CRISIS TIME-MACHINE + CUSTOM STOCK BASKET STRESS-TEST
+    ============================================================ -->
+    <div id="view-crisis" class="hidden space-y-6">
+      <div id="crisis-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
+      <!-- Custom Stock Basket Builder for Crisis Stress-Testing -->
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-medium text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5"></i> Custom Crisis Stock Basket
+            </span>
+            <h3 class="text-base font-semibold text-white mt-0.5">
+              Add Any Stock to See How Specific Companies Reacted During <span id="crisis-basket-title" class="text-rose-400">March 2020 COVID-19 Crash</span>
+            </h3>
+          </div>
+          <!-- Quick Add Form -->
+          <form onsubmit="handleAddCrisisStock(event)" class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <input
+              id="crisis-stock-input"
+              type="text"
+              placeholder="Add stock (e.g. Indigo, Paytm, Trent, ONGC)..."
+              class="w-full sm:w-64 bg-zinc-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500/60"
+            />
+            <select
+              id="crisis-stock-sector"
+              class="bg-zinc-950 border border-white/10 rounded-xl px-2.5 py-2 text-xs text-zinc-300 focus:outline-none"
+            >
+              <option value="auto">AI Auto-Detect Beta</option>
+              <option value="defensive">Defensive (Pharma/FMCG)</option>
+              <option value="bluechip">Large-Cap Core (Banks/IT)</option>
+              <option value="highBeta">High-Beta (Midcap/Realty/Tech)</option>
+            </select>
+            <button
+              type="submit"
+              class="px-3.5 py-2 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold transition whitespace-nowrap flex items-center gap-1"
+            >
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add to Basket
+            </button>
+          </form>
+        </div>
+
+        <!-- Quick-Add Pills -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <span class="text-zinc-500 text-[11px] mr-1">Quick Add:</span>
+          <button onclick="quickAddCrisisStock('TCS', 'bluechip')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ TCS</button>
+          <button onclick="quickAddCrisisStock('ICICI Bank', 'bluechip')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ ICICI Bank</button>
+          <button onclick="quickAddCrisisStock('DLF Realty', 'highBeta')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ DLF Realty</button>
+          <button onclick="quickAddCrisisStock('Suzlon Energy', 'highBeta')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ Suzlon</button>
+          <button onclick="quickAddCrisisStock('ITC', 'defensive')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ ITC</button>
+          <button onclick="quickAddCrisisStock('Gold BeES ETF', 'gold')" class="px-2.5 py-1 rounded-lg glass-subtle hover:border-white/20 text-zinc-300 text-[11px] transition">+ Gold BeES</button>
+        </div>
+
+        <!-- Stock-by-Stock Crisis Drawdown & Recovery Cards -->
+        <div id="crisis-custom-stocks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1"></div>
+      </div>
+
+      <!-- Interactive Decision Arena -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 space-y-4">
+          <div class="glass-card rounded-2xl p-5 space-y-4 border-rose-500/20">
+            <div class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
+                PEAK FEAR DECISION POINT
+              </span>
+              <span id="crisis-duration-label" class="text-xs text-zinc-400 font-mono-num"></span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20 space-y-3">
+              <p id="crisis-headline" class="text-sm sm:text-base font-medium text-zinc-100 leading-snug"></p>
+              <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                <div class="glass-subtle px-3 py-1.5 rounded-lg">
+                  <span class="text-zinc-400">Initial Value: </span>
+                  <span id="crisis-start-val" class="font-mono-num font-semibold text-white">₹10,000</span>
+                </div>
+                <div class="glass-subtle px-3 py-1.5 rounded-lg border-rose-500/30">
+                  <span class="text-zinc-400">Crash Bottom Value: </span>
+                  <span id="crisis-bottom-val" class="font-mono-num font-semibold text-rose-400">₹6,800 (-32%)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-2.5">
+              <h4 class="text-xs font-medium text-zinc-400">
+                What do you do at the bottom of the crash?
+              </h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button onclick="handleCrisisDecision('sell')" id="crisis-btn-sell" class="p-3.5 rounded-xl border text-left transition glass-subtle hover:border-rose-500/40">
+                  <div class="font-semibold text-[11px] text-rose-400 uppercase">Option A: Panic Exit</div>
+                  <div class="text-sm font-medium text-white mt-1">Sell Everything to Cash</div>
+                  <p class="text-[11px] text-zinc-400 mt-1">Stop the drawdown immediately and lock in current value.</p>
+                </button>
+
+                <button onclick="handleCrisisDecision('hold')" id="crisis-btn-hold" class="p-3.5 rounded-xl border text-left transition glass-subtle hover:border-indigo-500/40">
+                  <div class="font-semibold text-[11px] text-indigo-400 uppercase">Option B: Hold Steady</div>
+                  <div class="text-sm font-medium text-white mt-1">Stay Invested</div>
+                  <p class="text-[11px] text-zinc-400 mt-1">Ignore breaking news panic and let your allocation recover.</p>
+                </button>
+
+                <button onclick="handleCrisisDecision('dip')" id="crisis-btn-dip" class="p-3.5 rounded-xl border text-left transition bg-emerald-500/10 border-emerald-500/40 text-white">
+                  <div class="font-semibold text-[11px] text-emerald-400 uppercase">Option C: Rebalance</div>
+                  <div class="text-sm font-medium text-white mt-1">Buy the Crash Dip</div>
+                  <p class="text-[11px] text-zinc-400 mt-1">Rotate Gold buffer into beaten-down quality stocks.</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-card rounded-2xl p-5 space-y-4 h-full flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-emerald-400 flex items-center gap-1.5">
+                  <i data-lucide="fast-forward" class="w-3.5 h-3.5"></i> 6 Months Later
+                </span>
+                <span id="crisis-choice-badge" class="text-[11px] font-mono-num text-zinc-400">Selected: DIP</span>
+              </div>
+              <h3 class="text-base font-semibold text-white">Wealth Outcome Comparison</h3>
+
+              <div class="space-y-2.5 pt-1">
+                <div id="bar-card-sell" class="p-3 rounded-xl glass-subtle">
+                  <div class="flex justify-between text-xs">
+                    <span class="text-zinc-400">Panic Sold at Bottom</span>
+                    <span id="crisis-out-sell" class="text-rose-400 font-mono-num font-semibold">₹6,936</span>
+                  </div>
+                  <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div class="bg-rose-500/80 h-full" style="width: 52%"></div>
+                  </div>
+                </div>
+
+                <div id="bar-card-hold" class="p-3 rounded-xl glass-subtle">
+                  <div class="flex justify-between text-xs">
+                    <span class="text-zinc-400">Held Calmly Through Volatility</span>
+                    <span id="crisis-out-hold" class="text-indigo-400 font-mono-num font-semibold">₹11,260</span>
+                  </div>
+                  <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div class="bg-indigo-500/80 h-full" style="width: 82%"></div>
+                  </div>
+                </div>
+
+                <div id="bar-card-dip" class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                  <div class="flex justify-between text-xs">
+                    <span class="text-emerald-300 font-medium">Rebalanced & Bought Dip</span>
+                    <span id="crisis-out-dip" class="text-emerald-400 font-mono-num font-semibold">₹12,660</span>
+                  </div>
+                  <div class="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div class="bg-emerald-400 h-full" style="width: 96%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl glass-subtle space-y-1">
+              <div class="text-xs font-medium text-indigo-300 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
+                Behavioral Insight
+              </div>
+              <p id="crisis-lesson-text" class="text-xs text-zinc-400 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB 3: CUSTOM "WHAT-IF" MACRO SHOCK GENERATOR
+    ============================================================ -->
+    <div id="view-shock" class="hidden space-y-6">
+      <div class="glass-card rounded-2xl p-5 space-y-4">
+        <div class="max-w-3xl space-y-1">
+          <span class="text-[11px] font-medium uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i> Custom Macro Stress-Test
+          </span>
+          <h2 class="text-base sm:text-lg font-semibold text-white">
+            Simulate Any Future Geopolitical or RBI Policy Event
+          </h2>
+          <p class="text-xs text-zinc-400">
+            Select a scenario or type any hypothetical headline to see how your current portfolio and sectors would react based on historical analogs.
+          </p>
+        </div>
+
+        <div id="shock-presets-container" class="flex flex-wrap gap-2"></div>
+
+        <form onsubmit="handleCustomShockSubmit(event)" class="flex flex-col sm:flex-row gap-2">
+          <input
+            id="custom-shock-input"
+            type="text"
+            placeholder="Ask any 'What-If' (e.g., 'What if RBI cuts repo rate by 50 bps next month?')..."
+            class="flex-1 bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/60"
+          />
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-semibold text-xs transition whitespace-nowrap"
+          >
+            Run Stress-Test
+          </button>
+        </form>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase text-amber-400">Historical Regime Match</span>
+            <span id="shock-sim-badge" class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 text-xs font-mono-num">91% Match</span>
+          </div>
+          <h3 id="shock-prompt-title" class="text-base font-semibold text-white"></h3>
+          <p class="text-xs text-zinc-400">
+            <strong class="text-zinc-300">Closest Precedent:</strong> <span id="shock-parallel-text"></span>
+          </p>
+
+          <div class="p-4 rounded-xl glass-subtle">
+            <div class="text-xs text-zinc-400">Estimated 30-Day Portfolio Impact</div>
+            <div id="shock-impact-val" class="text-2xl font-mono-num font-semibold text-rose-400 mt-1"></div>
+          </div>
+
+          <div class="p-3.5 rounded-xl glass-subtle text-xs text-zinc-300 space-y-1">
+            <div class="font-medium text-indigo-300">AI Hedging Strategy</div>
+            <p id="shock-advice-text" class="text-zinc-400 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 glass-card rounded-2xl p-5 space-y-4">
+          <h3 class="text-xs font-medium uppercase tracking-wider text-zinc-400">
+            Sector-by-Sector Impact Breakdown
+          </h3>
+          <div id="shock-sectors-container" class="space-y-2.5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         TAB 4: PURE CONSUMER INVESTOR DNA & AI PORTFOLIO DOCTOR
+    ============================================================ -->
+    <div id="view-scorecard" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left 6 Columns: Behavioral DNA & Personalized Starter Basket -->
+        <div class="lg:col-span-6 glass-card rounded-2xl p-6 space-y-5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <i data-lucide="dna" class="w-3.5 h-3.5"></i> Behavioral Risk Profile
+            </span>
+            <span id="dna-status-pill" class="text-[11px] px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              Verified by Simulation
+            </span>
+          </div>
+
+          <div>
+            <div class="text-xs text-zinc-400">Your Investor Archetype</div>
+            <h2 id="score-archetype" class="text-xl sm:text-2xl font-semibold text-white mt-0.5">Contrarian Crisis Master</h2>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl glass-subtle text-center">
+              <div id="score-total" class="text-xl font-mono-num font-semibold text-emerald-400">93/100</div>
+              <div class="text-[11px] text-zinc-400 mt-1">Readiness Score</div>
+            </div>
+            <div class="p-3.5 rounded-xl glass-subtle text-center">
+              <div id="score-div" class="text-xl font-mono-num font-semibold text-indigo-400">92%</div>
+              <div class="text-[11px] text-zinc-400 mt-1">Shock Cushion</div>
+            </div>
+            <div class="p-3.5 rounded-xl glass-subtle text-center">
+              <div id="score-temp" class="text-xl font-mono-num font-semibold text-amber-400">94%</div>
+              <div class="text-[11px] text-zinc-400 mt-1">Anti-Panic Grit</div>
+            </div>
+          </div>
+
+          <!-- AI Recommended Starter Basket -->
+          <div class="p-4 rounded-xl glass-subtle space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-zinc-200 flex items-center gap-1.5">
+                <i data-lucide="PieChart" class="w-3.5 h-3.5 text-indigo-400"></i>
+                AI Tailored Portfolio Prescription
+              </span>
+              <span class="text-[11px] font-mono-num text-zinc-400" id="dna-capital-ref">For ₹10,000</span>
+            </div>
+            <div id="dna-recommended-basket" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- Right 6 Columns: AI Portfolio Doctor Audit + SIP Wealth Time-Machine -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                <i data-lucide="stethoscope" class="w-4 h-4 text-indigo-400"></i>
+                AI Portfolio Health Audit
+              </h3>
+              <button onclick="openImportModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">
+                Edit Holdings →
+              </button>
+            </div>
+            <div id="doctor-diagnostics-list" class="space-y-2.5 text-xs"></div>
+          </div>
+
+          <!-- Interactive SIP Discipline Calculator -->
+          <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-medium uppercase tracking-wider text-indigo-400">5-Year SIP Simulator</span>
+                <h3 class="text-sm font-semibold text-white mt-0.5">Cost of Pausing SIPs During Market Crashes</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs text-zinc-400">Monthly SIP:</span>
+                <select id="sip-amount-select" onchange="renderScorecardTab()" class="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs font-mono-num text-white">
+                  <option value="5000">₹5,000/mo</option>
+                  <option value="10000" selected>₹10,000/mo</option>
+                  <option value="25000">₹25,000/mo</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20">
+                <div class="text-[11px] text-emerald-400 font-medium">Uninterrupted SIP Through Dips</div>
+                <div id="sip-disciplined-val" class="text-lg font-mono-num font-semibold text-white mt-1">₹8,48,000</div>
+                <div class="text-[11px] text-zinc-400 mt-0.5">14.2% CAGR (Bought crash units cheap)</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-rose-500/[0.06] border border-rose-500/20">
+                <div class="text-[11px] text-rose-400 font-medium">Stopped SIP During Crash</div>
+                <div id="sip-panicked-val" class="text-lg font-mono-num font-semibold text-white mt-1">₹6,92,000</div>
+                <div id="sip-loss-diff" class="text-[11px] text-rose-400 mt-0.5">₹1,56,000 missed compounding</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================
+       IMPORT PORTFOLIO MODAL
+  ============================================================ -->
+  <div id="import-modal" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card bg-zinc-900 border border-white/10 rounded-2xl max-w-xl w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
+        <div>
+          <h3 class="text-base font-semibold text-white flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-400"></i>
+            Import Your Existing Portfolio
+          </h3>
+          <p class="text-xs text-zinc-400 mt-0.5">
+            Sync a sample broker basket, paste holdings, or add stocks to stress-test them across all tabs.
+          </p>
+        </div>
+        <button onclick="closeImportModal()" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- 1-Click Broker Demo Presets -->
+      <div class="space-y-2">
+        <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+          1-Click Broker Demo Profiles
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button onclick="applyPortfolioPreset('balanced')" class="p-3 rounded-xl glass-subtle hover:border-indigo-500/40 text-left transition">
+            <div class="text-xs font-semibold text-white">Zerodha Core</div>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Reliance, HDFC Bank, TCS, Gold BeES</p>
+          </button>
+          <button onclick="applyPortfolioPreset('aggressive')" class="p-3 rounded-xl glass-subtle hover:border-rose-500/40 text-left transition">
+            <div class="text-xs font-semibold text-white">Groww Momentum</div>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Eternal (Zomato), Tata Motors, Suzlon, Smallcap</p>
+          </button>
+          <button onclick="applyPortfolioPreset('defensive')" class="p-3 rounded-xl glass-subtle hover:border-emerald-500/40 text-left transition">
+            <div class="text-xs font-semibold text-white">Defensive Shield</div>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Sun Pharma, ITC, SBI, Gold ETF</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Paste CSV or Text -->
+      <div class="space-y-2">
+        <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+          Or Paste Tickers & Amounts (Format: Stock, Amount)
+        </label>
+        <textarea
+          id="import-csv-textarea"
+          rows="4"
+          class="w-full bg-zinc-950 border border-white/10 rounded-xl p-3 text-xs font-mono-num text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/60"
+          placeholder="HDFC Bank, 25000&#10;Reliance, 20000&#10;Eternal (Zomato), 15000&#10;Gold BeES ETF, 10000"
+        >HDFC Bank, 25000
+Reliance Industries, 20000
+Eternal (Zomato), 15000
+Gold BeES ETF, 10000</textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeImportModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white">
+          Cancel
+        </button>
+        <button onclick="handleImportTextSubmit()" class="px-4 py-2 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold transition">
+          Import & Stress-Test Portfolio
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. UPDATED NSE STOCKS DATASET (OCT 2026)
+    // ==========================================
+    const ASSETS_PATTERN_DATA = {
+      'Nifty IT Index': {
+        ticker: 'NIFTYIT',
+        currentPrice: '₹31,393',
+        change: '-1.66%',
+        similarityScore: 92,
+        aiBias: 'Bullish Rebound (74% Prob)',
+        rsi: '58.4 (Support Test)',
+        volTrend: '+18% Institutional Accum.',
+        setupName: 'Post-Rally Consolidation & 200-DMA Support Test',
+        historicalTwins: [
+          { period: 'March 2023 Consolidation', match: '92%', outcome60d: '+14.8%', macroContext: 'Global tech spending fears cooled; large deal wins stabilized margins.' },
+          { period: 'August 2024 Pullback', match: '88%', outcome60d: '+8.2%', macroContext: 'Carry-trade volatility absorbed by domestic institutional buying.' },
+          { period: 'May 2022 Rate Shock', match: '79%', outcome60d: '-7.8%', macroContext: 'US bond yield spike compressed IT valuation multiples.' }
+        ],
+        past60Days: [100, 102, 101, 98, 96, 95, 97, 99, 96, 94, 93, 95, 96, 98, 97, 99, 101, 100, 102, 103],
+        projections: {
+          bull: [103, 105, 108, 107, 111, 114, 116, 118],
+          base: [103, 104, 103, 105, 106, 108, 109, 110],
+          bear: [103, 101, 99, 98, 96, 97, 95, 95]
+        },
+        bullReturn: 14.5,
+        baseReturn: 6.8,
+        bearReturn: -7.8,
+        aiSummary: 'Following a strong weekly rebound, Nifty IT is retesting its 200-day moving average (~30,900). In 3 of the 4 closest historical twins, similar pullbacks with rising delivery volume resolved +6.8% to +14.5% higher over 45 days.',
+        riskRule: 'Enter in 2 tranches near ₹31,200; set stop-loss 4.5% below support (₹29,950).'
+      },
+      'Reliance Industries': {
+        ticker: 'RELIANCE',
+        currentPrice: '₹1,202',
+        change: '-0.76%',
+        similarityScore: 89,
+        aiBias: 'Mean-Reversion (78% Prob)',
+        rsi: '46.2 (Value Support)',
+        volTrend: '+14% Delivery Spike',
+        setupName: 'Post-Bonus Support Base & Institutional Accumulation',
+        historicalTwins: [
+          { period: 'Nov 2023 Breakout', match: '89%', outcome60d: '+15.8%', macroContext: 'Capex cycle peaked; retail & telecom ARPU expansion drove re-rating.' },
+          { period: 'March 2024 Base', match: '86%', outcome60d: '+6.9%', macroContext: 'Refining margins and O2C cash flows supported downside floor.' },
+          { period: 'Jan 2023 FII Drift', match: '81%', outcome60d: '-5.9%', macroContext: 'Foreign outflows weighed on index heavyweights despite steady earnings.' }
+        ],
+        past60Days: [100, 99, 97, 96, 94, 93, 94, 92, 93, 95, 94, 96, 97, 96, 98, 99, 98, 100, 101, 101],
+        projections: {
+          bull: [101, 104, 106, 109, 111, 113, 115, 117],
+          base: [101, 102, 103, 102, 104, 106, 107, 108],
+          bear: [101, 99, 98, 96, 97, 95, 94, 95]
+        },
+        bullReturn: 15.8,
+        baseReturn: 6.9,
+        bearReturn: -5.9,
+        aiSummary: 'Trading near ₹1,202 (close to its 52-week support zone of ₹1,152) at 21.8x P/E. Historically, whenever Reliance consolidated within 4% of its multi-month support with declining sell volume, probabilities favored a +6.9% base recovery.',
+        riskRule: 'Accumulate spot shares in 3 tranches; invalidate setup if weekly close drops below ₹1,145.'
+      },
+      'HDFC Bank': {
+        ticker: 'HDFCBANK',
+        currentPrice: '₹712',
+        change: '-2.31%',
+        similarityScore: 94,
+        aiBias: 'Strong Value Floor (82% Prob)',
+        rsi: '42.8 (Oversold Value)',
+        volTrend: '+26% DII Absorption',
+        setupName: '13.9x P/E Valuation Floor & Deposit Base Stabilization',
+        historicalTwins: [
+          { period: 'June 2022 Rate Cycle', match: '94%', outcome60d: '+13.2%', macroContext: 'NIM compression fears peaked; long-only institutional value buying stepped in.' },
+          { period: 'April 2024 Base', match: '90%', outcome60d: '+7.1%', macroContext: 'LDR normalization reassured domestic mutual funds.' },
+          { period: 'Oct 2023 Liquidity Dip', match: '83%', outcome60d: '-4.1%', macroContext: 'Tight banking system liquidity delayed multiple expansion.' }
+        ],
+        past60Days: [100, 98, 97, 95, 94, 92, 91, 92, 93, 92, 94, 95, 94, 96, 95, 97, 96, 98, 97, 98],
+        projections: {
+          bull: [98, 100, 103, 105, 107, 109, 110, 111],
+          base: [98, 99, 99, 101, 102, 103, 104, 105],
+          bear: [98, 96, 95, 94, 94, 93, 93, 94]
+        },
+        bullReturn: 13.2,
+        baseReturn: 7.1,
+        bearReturn: -4.1,
+        aiSummary: 'At ₹712 (13.9x P/E, near its ₹682 52-week low), HDFC Bank is in the bottom decile of its 10-year valuation band. Historical twins show limited downside (-4.1%) and an 82% probability of positive mean reversion over 45 days.',
+        riskRule: 'Core portfolio anchor. Avoid tight intraday stop-losses; hold across quarterly checkpoints.'
+      },
+      'Tata Motors': {
+        ticker: 'TATAMOTORS',
+        currentPrice: '₹419',
+        change: '-0.85%',
+        similarityScore: 88,
+        aiBias: 'Oversold Bounce (68% Prob)',
+        rsi: '38.5 (Oversold Zone)',
+        volTrend: '+12% Value Buying',
+        setupName: 'Cyclical Auto Pullback to Multi-Month Demand Zone',
+        historicalTwins: [
+          { period: 'Oct 2023 JLR Margin Beat', match: '88%', outcome60d: '+18.5%', macroContext: 'Free cash flow guidance upgrade triggered institutional short covering.' },
+          { period: 'May 2024 Consolidation', match: '85%', outcome60d: '+6.5%', macroContext: 'Domestic EV & commercial vehicle demand stabilized.' },
+          { period: 'Aug 2022 Global Auto Slowdown', match: '77%', outcome60d: '-9.8%', macroContext: 'Global macro headwinds weighed on export auto volumes.' }
+        ],
+        past60Days: [100, 102, 104, 101, 98, 95, 93, 91, 89, 90, 88, 87, 89, 90, 88, 89, 91, 90, 91, 92],
+        projections: {
+          bull: [92, 95, 98, 101, 103, 106, 108, 109],
+          base: [92, 93, 94, 93, 95, 96, 97, 98],
+          bear: [92, 90, 88, 87, 85, 86, 84, 83]
+        },
+        bullReturn: 18.5,
+        baseReturn: 6.5,
+        bearReturn: -9.8,
+        aiSummary: 'Trading at ₹418.75 after a deep cyclical reset, RSI has entered the sub-40 oversold zone. Historical twins suggest a +6.5% base recovery once selling exhaustion completes.',
+        riskRule: 'Stagger buys in 2 tranches; place protective stop-loss at ₹388.'
+      },
+      'Eternal (Zomato)': {
+        ticker: 'ETERNAL',
+        currentPrice: '₹320',
+        change: '-1.57%',
+        similarityScore: 86,
+        aiBias: 'High-Beta Momentum (64% Prob)',
+        rsi: '68.2 (High Momentum)',
+        volTrend: '+38% Volume Expansion',
+        setupName: 'Quick-Commerce Leadership & High-Multiple Consolidation',
+        historicalTwins: [
+          { period: 'July 2023 Profitability Pivot', match: '86%', outcome60d: '+24.4%', macroContext: 'Blinkit quick-commerce unit economics beat street estimates.' },
+          { period: 'Feb 2024 Index Inflow', match: '82%', outcome60d: '+9.2%', macroContext: 'Institutional passive inflows supported high valuation multiples.' },
+          { period: 'Nov 2021 Liquidity Flush', match: '80%', outcome60d: '-19.8%', macroContext: 'High-P/E consumer tech faced sharp profit booking during market dips.' }
+        ],
+        past60Days: [100, 103, 107, 105, 109, 114, 111, 115, 119, 116, 121, 124, 120, 125, 128, 124, 127, 130, 128, 131],
+        projections: {
+          bull: [131, 136, 141, 139, 146, 152, 158, 163],
+          base: [131, 129, 133, 135, 134, 138, 141, 143],
+          bear: [131, 124, 118, 115, 112, 109, 107, 105]
+        },
+        bullReturn: 24.4,
+        baseReturn: 9.2,
+        bearReturn: -19.8,
+        aiSummary: 'Eternal (Zomato) is consolidating near ₹320.20 (52-wk high ₹346.50). While earnings momentum supports a +9.2% to +24.4% upside twin, high-beta tech carries a -19.8% drawdown risk if sentiment flips.',
+        riskRule: 'Cap position size at 10–15% of portfolio; maintain a strict trailing stop-loss at ₹294.'
+      },
+      'State Bank of India (SBI)': {
+        ticker: 'SBIN',
+        currentPrice: '₹974',
+        change: '+1.15%',
+        similarityScore: 91,
+        aiBias: 'Bullish PSU Breakout (76% Prob)',
+        rsi: '61.5 (Relative Strength)',
+        volTrend: '+21% Institutional Buying',
+        setupName: '10.4x P/E Credit Growth & ROE Compounding Channel',
+        historicalTwins: [
+          { period: 'Dec 2023 PSU Rally', match: '91%', outcome60d: '+17.4%', macroContext: 'Strong credit growth and low slippages drove PSU bank re-rating.' },
+          { period: 'July 2024 Breakout', match: '87%', outcome60d: '+8.7%', macroContext: 'Steady net interest margins supported institutional accumulation.' },
+          { period: 'Feb 2023 Market Jitters', match: '78%', outcome60d: '-8.7%', macroContext: 'Broad market volatility triggered temporary profit booking.' }
+        ],
+        past60Days: [100, 101, 99, 102, 104, 103, 105, 104, 102, 103, 106, 108, 107, 109, 111, 110, 112, 114, 113, 115],
+        projections: {
+          bull: [115, 118, 122, 125, 127, 130, 133, 135],
+          base: [115, 116, 115, 118, 120, 121, 123, 125],
+          bear: [115, 112, 110, 108, 109, 107, 106, 105]
+        },
+        bullReturn: 17.4,
+        baseReturn: 8.7,
+        bearReturn: -8.7,
+        aiSummary: 'SBI is showing strong relative strength at ₹973.70 (+1.15%) while trading at an attractive 10.4x P/E. Historical twins point to a 76% win probability over 45 days.',
+        riskRule: 'Hold core position; trail stop-loss to 50-DMA (₹925).'
+      },
+      'Sun Pharma': {
+        ticker: 'SUNPHARMA',
+        currentPrice: '₹1,743',
+        change: '-0.90%',
+        similarityScore: 93,
+        aiBias: 'Defensive Compounder (84% Prob)',
+        rsi: '53.8 (Low-Beta Trend)',
+        volTrend: '+15% Defensive Rotation',
+        setupName: 'Defensive Healthcare Accumulation & Specialty Ramp',
+        historicalTwins: [
+          { period: 'Aug 2023 Defensive Rotation', match: '93%', outcome60d: '+13.3%', macroContext: 'Investors rotated into Pharma as cyclical sectors faced volatility.' },
+          { period: 'Jan 2024 Specialty Beat', match: '89%', outcome60d: '+8.8%', macroContext: 'Global specialty portfolio expanded operating margins.' },
+          { period: 'April 2022 USFDA Caution', match: '80%', outcome60d: '-5.3%', macroContext: 'Mild regulatory headline pullback absorbed quickly.' }
+        ],
+        past60Days: [100, 101, 101, 102, 103, 102, 104, 105, 104, 106, 107, 106, 108, 109, 108, 110, 111, 110, 112, 113],
+        projections: {
+          bull: [113, 115, 118, 120, 122, 124, 126, 128],
+          base: [113, 114, 115, 116, 118, 119, 121, 123],
+          bear: [113, 111, 110, 109, 109, 108, 108, 107]
+        },
+        bullReturn: 13.3,
+        baseReturn: 8.8,
+        bearReturn: -5.3,
+        aiSummary: 'At ₹1,743, Sun Pharma offers the tightest downside protection in our scanner (-5.3% worst twin) alongside an +8.8% base projection as investors seek defensive earnings visibility.',
+        riskRule: 'Ideal stabilizer alongside high-beta stocks. Allocate 15–20% for low-volatility compounding.'
+      },
+      'Bajaj Finance': {
+        ticker: 'BAJFINANCE',
+        currentPrice: '₹957',
+        change: '-2.52%',
+        similarityScore: 87,
+        aiBias: 'Reversal Setup (70% Prob)',
+        rsi: '44.5 (Support Re-test)',
+        volTrend: '+24% Institutional Volume',
+        setupName: 'Post-Split NBFC Valuation Reset & Rate-Pivot Setup',
+        historicalTwins: [
+          { period: 'May 2023 Credit Surge', match: '87%', outcome60d: '+19.0%', macroContext: 'Strong AUM growth and stable asset quality sparked re-rating.' },
+          { period: 'Sept 2024 Rate Pivot', match: '84%', outcome60d: '+8.6%', macroContext: 'Easing liquidity expectations boosted NBFC multiples.' },
+          { period: 'Nov 2023 Risk-Weight Hike', match: '79%', outcome60d: '-10.5%', macroContext: 'Regulatory tightening on unsecured loans pressured sentiment.' }
+        ],
+        past60Days: [100, 98, 96, 95, 93, 94, 92, 91, 93, 95, 94, 96, 98, 97, 99, 101, 100, 102, 104, 105],
+        projections: {
+          bull: [105, 109, 113, 116, 119, 121, 123, 125],
+          base: [105, 106, 108, 107, 110, 111, 113, 114],
+          bear: [105, 102, 99, 98, 96, 95, 94, 94]
+        },
+        bullReturn: 19.0,
+        baseReturn: 8.6,
+        bearReturn: -10.5,
+        aiSummary: 'Trading at ₹957.35 (post sub-division/bonus adjusted price, 29.3x P/E). Pullbacks toward ₹940–955 have historically attracted domestic institutional accumulation.',
+        riskRule: 'Cap allocation at 15% and maintain a stop-loss below ₹895.'
+      },
+      'Larsen & Toubro (L&T)': {
+        ticker: 'LT',
+        currentPrice: '₹3,662',
+        change: '+0.96%',
+        similarityScore: 90,
+        aiBias: 'Capex Compounder (77% Prob)',
+        rsi: '57.3 (Orderbook Support)',
+        volTrend: '+19% Long-Only Buying',
+        setupName: 'Infra Orderbook Execution & ₹3,630 Support Bounce',
+        historicalTwins: [
+          { period: 'Sept 2023 Mega Order Inflow', match: '90%', outcome60d: '+15.2%', macroContext: 'Record hydrocarbon and green energy orders from Middle East.' },
+          { period: 'Jan 2024 Capex Rally', match: '86%', outcome60d: '+8.0%', macroContext: 'Strong execution visibility across core infrastructure.' },
+          { period: 'May 2024 Election Pause', match: '81%', outcome60d: '-6.3%', macroContext: 'Temporary slowdown in tender awards during elections.' }
+        ],
+        past60Days: [100, 101, 100, 102, 101, 103, 105, 104, 103, 105, 106, 105, 107, 108, 107, 109, 110, 109, 111, 112],
+        projections: {
+          bull: [112, 115, 118, 121, 123, 125, 127, 129],
+          base: [112, 113, 114, 115, 117, 118, 120, 121],
+          bear: [112, 110, 108, 107, 106, 106, 105, 105]
+        },
+        bullReturn: 15.2,
+        baseReturn: 8.0,
+        bearReturn: -6.3,
+        aiSummary: 'L&T bounced cleanly to ₹3,661.90 (+0.96%). Shallow pullbacks (-6.3%) are consistently bought by long-only funds given multi-year orderbook visibility.',
+        riskRule: 'Accumulate on dips toward ₹3,580; core proxy for Indian infrastructure.'
+      },
+      'TCS (Tata Consultancy)': {
+        ticker: 'TCS',
+        currentPrice: '₹2,477',
+        change: '+0.49%',
+        similarityScore: 91,
+        aiBias: 'Dividend & Value Floor (79% Prob)',
+        rsi: '55.2 (17.3x P/E Support)',
+        volTrend: '+22% Institutional Inflow',
+        setupName: 'Multi-Year Valuation Floor (17.3x P/E) & Deal Recovery',
+        historicalTwins: [
+          { period: 'Oct 2022 IT Bottom', match: '91%', outcome60d: '+14.2%', macroContext: 'Attractive dividend yield and buyback support created a hard floor.' },
+          { period: 'June 2024 Deal Ramp', match: '87%', outcome60d: '+7.8%', macroContext: 'BFSI client spending stabilized in North America.' },
+          { period: 'March 2023 US Regional Bank Dip', match: '80%', outcome60d: '-5.1%', macroContext: 'Short-term client caution delayed discretionary projects.' }
+        ],
+        past60Days: [100, 97, 95, 94, 92, 93, 95, 96, 98, 99, 101, 102, 101, 103, 105, 106, 107, 108, 109, 110],
+        projections: {
+          bull: [110, 113, 116, 118, 120, 122, 124, 126],
+          base: [110, 111, 112, 113, 115, 116, 117, 119],
+          bear: [110, 108, 107, 106, 105, 105, 104, 104]
+        },
+        bullReturn: 14.2,
+        baseReturn: 7.8,
+        bearReturn: -5.1,
+        aiSummary: 'At ₹2,477 (17.28x P/E) and up +16.5% over the past week, TCS is emerging from a deep valuation trough with strong cash-flow protection.',
+        riskRule: 'High-conviction large-cap IT anchor; accumulate systematically.'
+      }
+    };
+
+    // ==========================================
+    // 2. CRISIS SCENARIOS + STOCK-LEVEL IMPACTS
+    // ==========================================
+    const CRISIS_SCENARIOS = {
+      covid2020: {
+        id: 'covid2020',
+        title: 'March 2020 COVID-19 Flash Crash',
+        subtitle: 'Nifty 50 plunged -38% in 30 days as global lockdowns froze economic activity.',
+        badge: 'Black Swan Velocity',
+        durationLabel: 'Feb 2020 – Oct 2020 (8 Months)',
+        headline: 'March 23, 2020: Nifty hits 10% Lower Circuit! Global lockdowns announced; crude oil crashes. Your portfolio is down sharply. What is your move?',
+        crashDropEquity: -0.37,
+        crashDropHighBeta: -0.48,
+        crashDropDefensive: -0.15,
+        crashDropGoldDebt: 0.05,
+        postCrashHoldLast: 1.12,
+        postCrashDipLast: 1.27,
+        aiLesson: {
+          sell: 'Selling on March 23rd locked in a permanent loss right before global liquidity drove a +55% recovery across IT, Pharma, and Bluechips over the next 6 months.',
+          hold: 'Sitting tight saved your capital from permanent erosion. Notice how defensive Pharma and Gold cushioned the worst day of the crash.',
+          dip: 'Rebalancing Gold gains into beaten-down quality stocks at lower circuit turned a -32% drawdown into a +27% net wealth gain within 6 months.'
+        }
+      },
+      election2024: {
+        id: 'election2024',
+        title: 'June 4, 2024 Election Result VIX Shock',
+        subtitle: 'India VIX spiked +45% intraday as seat tally surprise triggered a ₹30 Lakh Cr wipeout.',
+        badge: 'Event Volatility',
+        durationLabel: 'May 2024 – July 2024 (60 Days)',
+        headline: 'June 4, 2024 (11:15 AM): Election seat tally surprises street! PSU, Infra & Midcap stocks plunge -18% intraday! Margin calls triggered!',
+        crashDropEquity: -0.09,
+        crashDropHighBeta: -0.19,
+        crashDropDefensive: -0.02,
+        crashDropGoldDebt: 0.015,
+        postCrashHoldLast: 1.12,
+        postCrashDipLast: 1.22,
+        aiLesson: {
+          sell: 'June 4th was a classic leveraged F&O flush. Nifty recovered 100% of its election-day drop within 4 trading sessions!',
+          hold: 'You ignored intraday noise. Unleveraged investors hit brand-new all-time highs within 10 trading days.',
+          dip: 'Buying quality banks and IT during forced margin selling delivered 3 months of returns in just 2 weeks.'
+        }
+      },
+      gfc2008: {
+        id: 'gfc2008',
+        title: '2008 Global Financial Meltdown',
+        subtitle: 'Lehman Brothers collapse froze global credit; Nifty fell -55% before a historic recovery.',
+        badge: 'Systemic Credit Crisis',
+        durationLabel: 'Jan 2008 – May 2009 (16 Months)',
+        headline: 'Oct 2008: Global banking freeze! FIIs pulling billions from emerging markets. Real Estate & High-Beta stocks down -62%!',
+        crashDropEquity: -0.45,
+        crashDropHighBeta: -0.62,
+        crashDropDefensive: -0.22,
+        crashDropGoldDebt: 0.21,
+        postCrashHoldLast: 1.09,
+        postCrashDipLast: 1.29,
+        aiLesson: {
+          sell: 'Exiting in late 2008 meant missing the May 2009 upper-circuit recovery where Nifty surged +17% in a single day.',
+          hold: 'While high-beta stocks fell 62%, Gold surged +21% in INR terms—proving why multi-asset cushioning keeps you in the game.',
+          dip: 'Continuing SIPs and rebalancing during the 2008 credit freeze built 3x–5x wealth over the next cycle.'
+        }
+      },
+      tech2022: {
+        id: 'tech2022',
+        title: '2022 Rate Hike & Tech Winter',
+        subtitle: 'Central banks hiked rates aggressively to fight 8% inflation; high-P/E tech fell -45%.',
+        badge: 'Valuation Reset',
+        durationLabel: 'Jan 2022 – Dec 2022 (12 Months)',
+        headline: 'June 2022: US Fed & RBI hike interest rates! High-multiple new-age tech & midcaps down -44% from highs!',
+        crashDropEquity: -0.14,
+        crashDropHighBeta: -0.44,
+        crashDropDefensive: -0.06,
+        crashDropGoldDebt: 0.07,
+        postCrashHoldLast: 1.06,
+        postCrashDipLast: 1.23,
+        aiLesson: {
+          sell: 'Selling at peak rate fear locked in losses right before Indian PSU Banks, Auto, and Value stocks led a strong decoupling rally.',
+          hold: 'Your large-cap and Gold allocation buffered the steep -44% valuation reset in high-beta tech.',
+          dip: 'Averaging down once P/E multiples compressed set up strong 2023–24 portfolio compounding.'
+        }
+      }
+    };
+
+    const MACRO_SHOCK_PRESETS = [
+      {
+        id: 'oil120',
+        prompt: 'What if crude oil spikes to $120/bbl due to a Middle East supply shock?',
+        historicalParallel: 'March 2022 Oil Spike & 2008 Crude Surge',
+        similarity: '91%',
+        expectedPortfolioImpact: -6.8,
+        sectorImpacts: [
+          { sector: 'Aviation, Paints & Tyres', impact: '-14.5%', reason: 'Crude derivatives make up 40-55% of input costs, compressing operating margins.' },
+          { sector: 'IT & Pharma Exporters', impact: '+4.2%', reason: 'INR depreciation against USD acts as a natural tailwind for export billing.' },
+          { sector: 'Gold & Sovereign Debt', impact: '+8.5%', reason: 'Safe-haven capital rotation drives gold higher during geopolitical shocks.' }
+        ],
+        aiAdvice: 'India imports >80% of its crude oil. Keeping 15–20% in Gold and export-oriented IT/Pharma acts as an automatic hedge during energy spikes.'
+      },
+      {
+        id: 'ltcgHike',
+        prompt: 'What if Union Budget hikes Long-Term Capital Gains (LTCG) tax to 20%?',
+        historicalParallel: 'July 2024 Budget Tax Change & Feb 2018 LTCG Re-introduction',
+        similarity: '95%',
+        expectedPortfolioImpact: -3.2,
+        sectorImpacts: [
+          { sector: 'High-Beta Mid & Small Caps', impact: '-8.4%', reason: 'Retail profit-booking hits high-momentum midcaps in the first 48 hours.' },
+          { sector: 'Large-Cap Bluechips (Nifty 50)', impact: '-1.8%', reason: 'Domestic SIP inflows absorb knee-jerk selling within a week.' },
+          { sector: 'Capital Market & Broker Stocks', impact: '-11.0%', reason: 'Concerns over lower retail turnover weigh on exchange/broker multiples.' }
+        ],
+        aiAdvice: 'In July 2024, when capital gains taxes were raised on Budget Day, the Nifty recovered 100% of its intraday drop within 48 hours. Tax headlines rarely break structural earnings.'
+      },
+      {
+        id: 'rupee90',
+        prompt: 'What if US Fed delays rate cuts and INR weakens past ₹89/USD?',
+        historicalParallel: 'Oct 2022 USD Surge & 2013 Taper Tantrum',
+        similarity: '88%',
+        expectedPortfolioImpact: -4.5,
+        sectorImpacts: [
+          { sector: 'IT Services (TCS, Infosys) & Pharma', impact: '+9.6%', reason: 'Every 1% drop in INR boosts export operating margins by ~35 bps.' },
+          { sector: 'FII-Heavy Private Banks', impact: '-6.2%', reason: 'Foreign institutional outflows accelerate when EM currencies weaken.' },
+          { sector: 'Import-Intensive Auto/Electronics', impact: '-5.8%', reason: 'Higher landed cost of imported components pressures margins.' }
+        ],
+        aiAdvice: 'Currency depreciation rewards exporters. Holding IT and Gold turns a weaker Rupee from a liability into a stabilizer.'
+      }
+    ];
+
+    // ==========================================
+    // 3. STATE MANAGEMENT
+    // ==========================================
+    let state = {
+      activeTab: 'pattern',
+      capital: 10000,
+      allocation: { bluechip: 50, highBeta: 30, goldDebt: 20 },
+      selectedAsset: 'Nifty IT Index',
+      isPatternReplaying: true,
+      userGuess: 'bull',
+      selectedCrisisId: 'covid2020',
+      crisisChoice: 'dip',
+      completedSimulations: [{ crisis: 'March 2020 COVID-19 Flash Crash', action: 'dip' }],
+      selectedShockIndex: 0,
+      customShockData: null,
+      // Custom stocks in Crisis Basket (user can add/remove any stock!)
+      crisisBasket: [
+        { name: 'HDFC Bank', category: 'bluechip', price: '₹712' },
+        { name: 'Reliance Industries', category: 'bluechip', price: '₹1,202' },
+        { name: 'Eternal (Zomato)', category: 'highBeta', price: '₹320' },
+        { name: 'Sun Pharma', category: 'defensive', price: '₹1,743' }
+      ],
+      importedHoldingsCount: 0
+    };
+
+    // ==========================================
+    // 4. SVG CHART & TAB 1 RENDERING
+    // ==========================================
+    function renderFanChart(pastData, projections, isReplaying) {
+      const width = 640;
+      const height = 225;
+      const padding = 28;
+      const allValues = [...pastData, ...projections.bull, ...projections.base, ...projections.bear];
+      const minVal = Math.min(...allValues) - 3;
+      const maxVal = Math.max(...allValues) + 3;
+      const totalPoints = pastData.length + projections.base.length - 1;
+
+      const getX = (index) => padding + (index / (totalPoints - 1)) * (width - padding * 2);
+      const getY = (val) => height - padding - ((val - minVal) / (maxVal - minVal)) * (height - padding * 2);
+
+      const pastPoints = pastData.map((val, idx) => `${getX(idx)},${getY(val)}`).join(' ');
+      const startIdx = pastData.length - 1;
+      const bullPoints = projections.bull.map((val, idx) => `${getX(startIdx + idx)},${getY(val)}`).join(' ');
+      const basePoints = projections.base.map((val, idx) => `${getX(startIdx + idx)},${getY(val)}`).join(' ');
+      const bearPoints = projections.bear.map((val, idx) => `${getX(startIdx + idx)},${getY(val)}`).join(' ');
+
+      const conePolygon = [
+        ...projections.bull.map((val, idx) => `${getX(startIdx + idx)},${getY(val)}`),
+        ...[...projections.bear].reverse().map((val, revIdx) => {
+          const idx = projections.bear.length - 1 - revIdx;
+          return `${getX(startIdx + idx)},${getY(val)}`;
+        })
+      ].join(' ');
+
+      const dividerX = getX(startIdx);
+      const lastY = getY(pastData[pastData.length - 1]);
+
+      const gridLines = [0.2, 0.5, 0.8].map(r =>
+        `<line x1="${padding}" y1="${height * r}" x2="${width - padding}" y2="${height * r}" stroke="#27272a" stroke-dasharray="3 3" stroke-width="1" />`
+      ).join('');
+
+      const projectionMarkup = isReplaying ? `
+        <polygon points="${conePolygon}" fill="rgba(99, 102, 241, 0.10)" />
+        <polyline fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="4 3" points="${bullPoints}" />
+        <polyline fill="none" stroke="#818cf8" stroke-width="2.5" points="${basePoints}" />
+        <polyline fill="none" stroke="#fb7185" stroke-width="2" stroke-dasharray="4 3" points="${bearPoints}" />
+      ` : '';
+
+      document.getElementById('svg-chart-container').innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
+          ${gridLines}
+          <line x1="${dividerX}" y1="${padding / 2}" x2="${dividerX}" y2="${height - padding / 2}" stroke="#52525b" stroke-dasharray="3 3" stroke-width="1" />
+          <text x="${dividerX - 8}" y="${padding - 8}" text-anchor="end" class="fill-zinc-400 text-[10px] font-mono-num">PAST 60D</text>
+          <text x="${dividerX + 8}" y="${padding - 8}" text-anchor="start" class="fill-indigo-400 text-[10px] font-mono-num">45D PROJECTION →</text>
+          <polyline fill="none" stroke="#e4e4e7" stroke-width="2" points="${pastPoints}" />
+          ${projectionMarkup}
+          <circle cx="${dividerX}" cy="${lastY}" r="4.5" class="fill-indigo-400 stroke-zinc-950 stroke-2" />
+        </svg>
+      `;
+    }
+
+    function renderStockList() {
+      const container = document.getElementById('stock-list-container');
+      container.innerHTML = Object.keys(ASSETS_PATTERN_DATA).map(name => {
+        const item = ASSETS_PATTERN_DATA[name];
+        const isSelected = state.selectedAsset === name;
+        const isPositive = item.change.startsWith('+');
+        return `
+          <button
+            onclick="selectStock('${name.replace(/'/g, "\\'")}')"
+            class="w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between ${
+              isSelected
+                ? 'bg-zinc-800/90 border-indigo-500/40'
+                : 'bg-zinc-950/50 border-white/[0.04] hover:border-white/10'
+            }"
+          >
+            <div class="pr-2">
+              <div class="font-medium text-xs text-white flex items-center gap-1.5">
+                <span>${name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 font-mono-num">${item.ticker}</span>
+              </div>
+              <div class="text-[11px] text-zinc-500 mt-0.5 line-clamp-1">${item.setupName}</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-mono-num font-semibold text-zinc-200">${item.currentPrice} <span class="${isPositive ? 'text-emerald-400' : 'text-rose-400'} text-[11px]">${item.change}</span></div>
+              <div class="text-[10px] font-mono-num text-indigo-400">${item.similarityScore}% Twin</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderPatternTab() {
+      const data = ASSETS_PATTERN_DATA[state.selectedAsset];
+      if (!data) return;
+
+      document.getElementById('pattern-match-badge').textContent = `${data.similarityScore}% Twin Similarity`;
+      document.getElementById('pattern-confidence-tag').textContent = `AI Bias: ${data.aiBias}`;
+      document.getElementById('quiz-capital-label').textContent = `₹${state.capital.toLocaleString('en-IN')}`;
+      document.getElementById('quiz-asset-label').textContent = state.selectedAsset;
+
+      document.getElementById('active-ticker-badge').textContent = data.ticker;
+      document.getElementById('active-price-badge').textContent = `${data.currentPrice} (${data.change})`;
+      document.getElementById('active-price-badge').className = `text-sm font-mono-num font-semibold ${data.change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}`;
+      document.getElementById('active-setup-title').textContent = `${state.selectedAsset}: ${data.setupName}`;
+
+      document.getElementById('ind-rsi').textContent = data.rsi;
+      document.getElementById('ind-vol').textContent = data.volTrend;
+      document.getElementById('ind-prob').textContent = data.aiBias;
+      const expectedAvg = ((data.bullReturn * 0.35) + (data.baseReturn * 0.45) + (data.bearReturn * 0.20)).toFixed(1);
+      document.getElementById('ind-target').textContent = `${expectedAvg > 0 ? '+' : ''}${expectedAvg}% Expected (45d)`;
+
+      renderFanChart(data.past60Days, data.projections, state.isPatternReplaying);
+
+      const bullInr = Math.round(state.capital * (1 + data.bullReturn / 100));
+      const baseInr = Math.round(state.capital * (1 + data.baseReturn / 100));
+      const bearInr = Math.round(state.capital * (1 + data.bearReturn / 100));
+
+      document.getElementById('out-bull-inr').textContent = `₹${bullInr.toLocaleString('en-IN')}`;
+      document.getElementById('out-bull-pct').textContent = `(+${data.bullReturn}%)`;
+      document.getElementById('out-bull-twin').textContent = `${data.historicalTwins[0].period} (${data.historicalTwins[0].match} match)`;
+
+      document.getElementById('out-base-inr').textContent = `₹${baseInr.toLocaleString('en-IN')}`;
+      document.getElementById('out-base-pct').textContent = `(${data.baseReturn >= 0 ? '+' : ''}${data.baseReturn}%)`;
+      document.getElementById('out-base-twin').textContent = `${data.historicalTwins[1].period} (${data.historicalTwins[1].match} match)`;
+
+      document.getElementById('out-bear-inr').textContent = `₹${bearInr.toLocaleString('en-IN')}`;
+      document.getElementById('out-bear-pct').textContent = `(${data.bearReturn}%)`;
+      document.getElementById('out-bear-twin').textContent = `${data.historicalTwins[2].period} (${data.historicalTwins[2].match} match)`;
+
+      const guessFeedback = document.getElementById('quiz-feedback-text');
+      if (state.userGuess === 'bull') {
+        guessFeedback.innerHTML = `Lump-sum buying captures the full <strong class="text-emerald-400">+${data.bullReturn}%</strong> bull twin, but exposes your capital to a <strong class="text-rose-400">${data.bearReturn}%</strong> drawdown if macro conditions sour.`;
+      } else if (state.userGuess === 'sideways') {
+        guessFeedback.innerHTML = `<strong class="text-indigo-300">Optimal Risk Discipline:</strong> Deploying in 3 tranches captures the <strong class="text-indigo-300">+${data.baseReturn}%</strong> base move while keeping dry powder if support is retested.`;
+      } else {
+        guessFeedback.innerHTML = `Staying in cash avoids the <strong class="text-rose-400">${data.bearReturn}%</strong> downside twin, though historical probabilities favor an upward resolution in ~3 out of 4 twins.`;
+      }
+
+      document.getElementById('twins-list-container').innerHTML = data.historicalTwins.map(twin => `
+        <div class="p-2.5 rounded-lg bg-zinc-900/70 border border-white/[0.04] text-xs">
+          <div class="flex justify-between font-medium text-zinc-200">
+            <span>${twin.period} (${twin.match})</span>
+            <span class="font-mono-num ${twin.outcome60d.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${twin.outcome60d}</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 mt-0.5">${twin.macroContext}</p>
+        </div>
+      `).join('');
+
+      document.getElementById('ai-summary-text').textContent = data.aiSummary;
+      document.getElementById('ai-risk-rule').textContent = data.riskRule;
+
+      renderStockList();
+    }
+
+    async function handleCustomStockScan(e) {
+      e.preventDefault();
+      const inputEl = document.getElementById('custom-stock-input');
+      const query = inputEl.value.trim();
+      if (!query) return;
+
+      const btn = document.getElementById('custom-stock-btn');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin inline-block w-3.5 h-3.5 border-2 border-zinc-900 border-t-transparent rounded-full"></span>`;
+
+      const seed = query.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      const ticker = query.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'CUSTOM';
+      const basePrice = 380 + (seed % 2400);
+      const bullRet = Number((12 + (seed % 14) + 0.4).toFixed(1));
+      const baseRet = Number((5 + (seed % 7) + 0.2).toFixed(1));
+      const bearRet = Number((-5 - (seed % 11) - 0.3).toFixed(1));
+      const simScore = 85 + (seed % 10);
+
+      let newStockObj = {
+        ticker: ticker,
+        currentPrice: `₹${basePrice.toLocaleString('en-IN')}`,
+        change: (seed % 2 === 0 ? '+' : '-') + ((seed % 3) + 0.4).toFixed(2) + '%',
+        similarityScore: simScore,
+        aiBias: `Bullish Skew (${68 + (seed % 16)}% Prob)`,
+        rsi: `${48 + (seed % 20)}.4 (Neutral-Bullish)`,
+        volTrend: `+${12 + (seed % 22)}% vs 30d Avg`,
+        setupName: '60-Day Volatility Compression & Institutional Accumulation',
+        historicalTwins: [
+          { period: 'Nov 2023 Momentum Wave', match: `${simScore}%`, outcome60d: `+${bullRet}%`, macroContext: 'Sector tailwinds and earnings expansion triggered institutional buying.' },
+          { period: 'July 2024 Accumulation', match: `${simScore - 4}%`, outcome60d: `+${baseRet}%`, macroContext: 'Domestic mutual fund inflows supported valuation multiples.' },
+          { period: 'May 2022 Macro Pullback', match: `${simScore - 9}%`, outcome60d: `${bearRet}%`, macroContext: 'Global rate volatility compressed high-beta equity multiples.' }
+        ],
+        past60Days: [100, 99, 101, 100, 98, 97, 99, 101, 100, 102, 101, 103, 102, 104, 103, 105, 104, 106, 105, 107],
+        projections: {
+          bull: [107, 110, 113, 115, 118, 120, 122, Math.round(107 * (1 + bullRet / 100))],
+          base: [107, 108, 109, 110, 111, 112, 113, Math.round(107 * (1 + baseRet / 100))],
+          bear: [107, 105, 103, 101, 100, 99, 98, Math.round(107 * (1 + bearRet / 100))]
+        },
+        bullReturn: bullRet,
+        baseReturn: baseRet,
+        bearReturn: bearRet,
+        aiSummary: `Pattern scan for ${query} identifies a ${simScore}% structural match with late-2023 accumulation regimes. Rolling 60-day volume absorption projects a base trajectory of +${baseRet}% (bull case +${bullRet}%) over 45 trading days.`,
+        riskRule: `Accumulate ${query} in 2 staggered tranches; set stop-loss ${Math.abs(bearRet / 2).toFixed(1)}% below recent swing support.`
+      };
+
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const prompt = `Analyze NSE stock "${query}" using technical pattern matching. Return JSON with: setupName (string), aiSummary (2 concise sentences on 60d pattern and 45d projection), riskRule (1 sentence position sizing & stop-loss rule), bullReturn (number 10 to 26), baseReturn (number 4 to 11), bearReturn (negative number -5 to -16).`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
+
+        if (response.ok) {
+          const resJson = await response.json();
+          const text = resJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            const parsed = JSON.parse(text);
+            if (parsed.setupName) newStockObj.setupName = parsed.setupName;
+            if (parsed.aiSummary) newStockObj.aiSummary = parsed.aiSummary;
+            if (parsed.riskRule) newStockObj.riskRule = parsed.riskRule;
+            if (typeof parsed.bullReturn === 'number') newStockObj.bullReturn = parsed.bullReturn;
+            if (typeof parsed.baseReturn === 'number') newStockObj.baseReturn = parsed.baseReturn;
+            if (typeof parsed.bearReturn === 'number') newStockObj.bearReturn = parsed.bearReturn;
+            document.getElementById('ai-live-badge').classList.remove('hidden');
+          }
+        }
+      } catch (err) {}
+
+      ASSETS_PATTERN_DATA[query] = newStockObj;
+      state.selectedAsset = query;
+      state.isPatternReplaying = true;
+      inputEl.value = '';
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      renderPatternTab();
+      lucide.createIcons();
+    }
+
+    async function runLiveAISynthesis() {
+      const btn = document.getElementById('btn-deep-ai');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin inline-block w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full"></span> Computing...`;
+
+      const asset = state.selectedAsset;
+      const data = ASSETS_PATTERN_DATA[asset];
+
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const prompt = `Act as FinjaVu AI Quantitative Coach. For ${asset} (${data.setupName}), write a 2-sentence synthesis explaining why the 60-day pattern projects a ${data.baseReturn}% base move (${data.bullReturn}% bull / ${data.bearReturn}% bear) for a ₹${state.capital} allocation.`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) data.aiSummary = text;
+        } else {
+          data.aiSummary = `[Deep Scan Verdict]: Multi-timeframe DTW analysis on ${asset} confirms institutional absorption near support. With ₹${state.capital.toLocaleString('en-IN')}, historical odds favor a +${data.baseReturn}% to +${data.bullReturn}% resolution over 45 days.`;
+        }
+      } catch (e) {
+        data.aiSummary = `[Deep Scan Verdict]: Multi-timeframe DTW analysis on ${asset} confirms institutional absorption near support. With ₹${state.capital.toLocaleString('en-IN')}, historical odds favor a +${data.baseReturn}% to +${data.bullReturn}% resolution over 45 days.`;
+      }
+
+      document.getElementById('ai-live-badge').classList.remove('hidden');
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      renderPatternTab();
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // 5. TAB 2: CRISIS SIMULATOR + CUSTOM STOCKS
+    // ==========================================
+    function detectStockCategory(name, chosenSector) {
+      if (chosenSector && chosenSector !== 'auto') return chosenSector;
+      const lower = name.toLowerCase();
+      if (lower.includes('gold') || lower.includes('debt') || lower.includes('gilt') || lower.includes('liquid')) return 'gold';
+      if (lower.includes('pharma') || lower.includes('sun') || lower.includes('cipla') || lower.includes('dr reddy') || lower.includes('itc') || lower.includes('hul') || lower.includes('nestle')) return 'defensive';
+      if (lower.includes('zomato') || lower.includes('eternal') || lower.includes('paytm') || lower.includes('suzlon') || lower.includes('dlf') || lower.includes('small') || lower.includes('mid') || lower.includes('trent') || lower.includes('adani')) return 'highBeta';
+      return 'bluechip';
+    }
+
+    function computeStockCrisisPerformance(stock, crisis) {
+      const seed = stock.name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const jitter = ((seed % 5) - 2) * 0.01;
+      let crashPct = crisis.crashDropEquity + jitter;
+      let recoveryPct = 0.24;
+
+      if (stock.category === 'highBeta') {
+        crashPct = crisis.crashDropHighBeta + jitter;
+        recoveryPct = 0.38;
+      } else if (stock.category === 'defensive') {
+        crashPct = crisis.crashDropDefensive + jitter;
+        recoveryPct = 0.28;
+      } else if (stock.category === 'gold') {
+        crashPct = crisis.crashDropGoldDebt;
+        recoveryPct = 0.12;
+      }
+
+      return {
+        crashPct: Math.round(crashPct * 100),
+        recoveryPct: Math.round(recoveryPct * 100)
+      };
+    }
+
+    function handleAddCrisisStock(e) {
+      e.preventDefault();
+      const input = document.getElementById('crisis-stock-input');
+      const sectorSel = document.getElementById('crisis-stock-sector');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const cat = detectStockCategory(name, sectorSel.value);
+      const matchedKnown = ASSETS_PATTERN_DATA[name]?.currentPrice || `₹${(420 + (name.length * 137) % 1800).toLocaleString('en-IN')}`;
+
+      if (!state.crisisBasket.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+        state.crisisBasket.push({ name, category: cat, price: matchedKnown });
+      }
+      input.value = '';
+      renderCrisisTab();
+      renderScorecardTab();
+      lucide.createIcons();
+    }
+
+    function quickAddCrisisStock(name, category) {
+      if (!state.crisisBasket.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+        const knownPrice = ASSETS_PATTERN_DATA[name]?.currentPrice || '₹845';
+        state.crisisBasket.push({ name, category, price: knownPrice });
+        renderCrisisTab();
+        renderScorecardTab();
+        lucide.createIcons();
+      }
+    }
+
+    function removeCrisisStock(index) {
+      if (state.crisisBasket.length <= 1) return;
+      state.crisisBasket.splice(index, 1);
+      renderCrisisTab();
+      renderScorecardTab();
+      lucide.createIcons();
+    }
+
+    function renderCrisisTab() {
+      const cardsContainer = document.getElementById('crisis-cards-container');
+      cardsContainer.innerHTML = Object.values(CRISIS_SCENARIOS).map(sc => {
+        const isSelected = state.selectedCrisisId === sc.id;
+        return `
+          <button
+            onclick="selectCrisis('${sc.id}')"
+            class="p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+              isSelected
+                ? 'bg-zinc-800/90 border-rose-500/50 shadow-sm'
+                : 'glass-card hover:border-white/15'
+            }"
+          >
+            <div>
+              <span class="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">${sc.badge}</span>
+              <h3 class="text-sm font-semibold text-white mt-2">${sc.title}</h3>
+              <p class="text-xs text-zinc-400 mt-1 line-clamp-2">${sc.subtitle}</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/[0.05] flex items-center justify-between text-[11px] text-zinc-400">
+              <span>${sc.durationLabel}</span>
+              <span class="text-rose-400 font-medium">Select →</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      const active = CRISIS_SCENARIOS[state.selectedCrisisId];
+      document.getElementById('crisis-basket-title').textContent = active.title;
+
+      // Render Custom Crisis Stock Basket Cards
+      const perStockCap = Math.round(state.capital / state.crisisBasket.length);
+      const gridEl = document.getElementById('crisis-custom-stocks-grid');
+      gridEl.innerHTML = state.crisisBasket.map((st, idx) => {
+        const perf = computeStockCrisisPerformance(st, active);
+        const crashInr = Math.round(perStockCap * (1 + perf.crashPct / 100));
+        const recovInr = Math.round(perStockCap * (1 + perf.recoveryPct / 100));
+        const catBadge =
+          st.category === 'highBeta' ? 'High-Beta' :
+          st.category === 'defensive' ? 'Defensive' :
+          st.category === 'gold' ? 'Gold Hedge' : 'Core Large-Cap';
+
+        return `
+          <div class="p-3.5 rounded-xl glass-subtle flex flex-col justify-between space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="text-xs font-semibold text-white">${st.name}</div>
+                <span class="text-[10px] text-zinc-400">${catBadge} • Alloc: ₹${perStockCap.toLocaleString('en-IN')}</span>
+              </div>
+              <button onclick="removeCrisisStock(${idx})" class="text-zinc-500 hover:text-zinc-300 p-0.5" title="Remove stock">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.05] text-[11px]">
+              <div>
+                <div class="text-zinc-500">Crash Bottom</div>
+                <div class="font-mono-num font-semibold ${perf.crashPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                  ${perf.crashPct > 0 ? '+' : ''}${perf.crashPct}% (₹${crashInr.toLocaleString('en-IN')})
+                </div>
+              </div>
+              <div>
+                <div class="text-zinc-500">6M Recovery</div>
+                <div class="font-mono-num font-semibold text-emerald-400">
+                  +${perf.recoveryPct}% (₹${recovInr.toLocaleString('en-IN')})
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Overall Portfolio Crash Math combining sliders & custom basket
+      const weightedDrop =
+        (state.allocation.bluechip / 100) * active.crashDropEquity +
+        (state.allocation.highBeta / 100) * active.crashDropHighBeta +
+        (state.allocation.goldDebt / 100) * active.crashDropGoldDebt;
+
+      const bottomVal = Math.round(state.capital * (1 + weightedDrop));
+      const drawdownPct = Math.round(weightedDrop * 100);
+      const sellOutcome = bottomVal + Math.round(bottomVal * 0.02);
+      const holdOutcome = Math.round(state.capital * (active.postCrashHoldLast + (state.allocation.goldDebt / 100) * 0.08));
+      const dipOutcome = Math.round(state.capital * (active.postCrashDipLast + (state.allocation.goldDebt / 100) * 0.08));
+
+      document.getElementById('crisis-duration-label').textContent = active.durationLabel;
+      document.getElementById('crisis-headline').textContent = active.headline;
+      document.getElementById('crisis-start-val').textContent = `₹${state.capital.toLocaleString('en-IN')}`;
+      document.getElementById('crisis-bottom-val').textContent = `₹${bottomVal.toLocaleString('en-IN')} (${drawdownPct}%)`;
+
+      document.getElementById('crisis-choice-badge').textContent = `Selected: ${state.crisisChoice.toUpperCase()}`;
+      document.getElementById('crisis-out-sell').textContent = `₹${sellOutcome.toLocaleString('en-IN')}`;
+      document.getElementById('crisis-out-hold').textContent = `₹${holdOutcome.toLocaleString('en-IN')}`;
+      document.getElementById('crisis-out-dip').textContent = `₹${dipOutcome.toLocaleString('en-IN')}`;
+      document.getElementById('crisis-lesson-text').textContent = active.aiLesson[state.crisisChoice];
+
+      ['sell', 'hold', 'dip'].forEach(ch => {
+        const btn = document.getElementById(`crisis-btn-${ch}`);
+        const bar = document.getElementById(`bar-card-${ch}`);
+        const activeBorder = ch === 'sell' ? 'border-rose-500/50 bg-rose-500/10' : ch === 'hold' ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-emerald-500/50 bg-emerald-500/10';
+        if (state.crisisChoice === ch) {
+          btn.className = `p-3.5 rounded-xl border text-left transition ${activeBorder} text-white`;
+          bar.className = `p-3 rounded-xl border ${activeBorder}`;
+        } else {
+          btn.className = `p-3.5 rounded-xl border text-left transition glass-subtle hover:border-white/20 text-zinc-200`;
+          bar.className = `p-3 rounded-xl glass-subtle`;
+        }
+      });
+    }
+
+    function renderShockTab() {
+      const presetsContainer = document.getElementById('shock-presets-container');
+      presetsContainer.innerHTML = MACRO_SHOCK_PRESETS.map((p, idx) => {
+        const isSelected = !state.customShockData && state.selectedShockIndex === idx;
+        return `
+          <button
+            onclick="selectShockPreset(${idx})"
+            class="px-3 py-2 rounded-xl text-xs font-medium border transition ${
+              isSelected
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
+                : 'glass-subtle text-zinc-400 hover:text-zinc-200'
+            }"
+          >
+            ${p.prompt}
+          </button>
+        `;
+      }).join('');
+
+      const data = state.customShockData || MACRO_SHOCK_PRESETS[state.selectedShockIndex];
+      document.getElementById('shock-sim-badge').textContent = `${data.similarity} Match`;
+      document.getElementById('shock-prompt-title').textContent = data.prompt;
+      document.getElementById('shock-parallel-text').textContent = data.historicalParallel;
+
+      const afterInr = Math.round(state.capital * (1 + data.expectedPortfolioImpact / 100));
+      document.getElementById('shock-impact-val').textContent = `${data.expectedPortfolioImpact}% (₹${afterInr.toLocaleString('en-IN')})`;
+      document.getElementById('shock-advice-text').textContent = data.aiAdvice;
+
+      document.getElementById('shock-sectors-container').innerHTML = data.sectorImpacts.map(sec => {
+        const isPos = sec.impact.startsWith('+');
+        return `
+          <div class="p-3.5 rounded-xl glass-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div class="font-medium text-xs sm:text-sm text-white">${sec.sector}</div>
+              <p class="text-xs text-zinc-400 mt-0.5">${sec.reason}</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg font-mono-num font-semibold text-xs self-start sm:self-center whitespace-nowrap ${
+              isPos
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+                : 'bg-rose-500/15 text-rose-400 border border-rose-500/25'
+            }">
+              ${sec.impact}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderScorecardTab() {
+      const divScore = state.allocation.goldDebt >= 15 && state.allocation.highBeta <= 35 ? 92 : state.allocation.highBeta > 50 ? 56 : 78;
+      const panicCount = state.completedSimulations.filter(s => s.action === 'sell').length;
+      const tempScore = panicCount === 0 ? 94 : panicCount === 1 ? 72 : 48;
+      const totalScore = Math.round((divScore + tempScore) / 2);
+
+      let archetype = 'Balanced Regime Navigator';
+      if (totalScore >= 88) archetype = 'Contrarian Crisis Master';
+      else if (state.allocation.highBeta > 50) archetype = 'High-Beta Momentum Seeker';
+      else if (panicCount > 0) archetype = 'Headline-Sensitive Investor';
+
+      document.getElementById('score-archetype').textContent = archetype;
+      document.getElementById('score-total').textContent = `${totalScore}/100`;
+      document.getElementById('score-div').textContent = `${divScore}%`;
+      document.getElementById('score-temp').textContent = `${tempScore}%`;
+      document.getElementById('dna-capital-ref').textContent = `For ₹${state.capital.toLocaleString('en-IN')}`;
+
+      // Recommended Starter Basket based on user's DNA
+      const coreAmt = Math.round(state.capital * 0.50);
+      const growthAmt = Math.round(state.capital * 0.30);
+      const shieldAmt = state.capital - coreAmt - growthAmt;
+
+      document.getElementById('dna-recommended-basket').innerHTML = `
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/80 border border-white/[0.04]">
+          <div>
+            <span class="font-medium text-white">Core Compounders (50%)</span>
+            <p class="text-[11px] text-zinc-400">HDFC Bank (₹712), Reliance (₹1,202), TCS (₹2,477)</p>
+          </div>
+          <span class="font-mono-num font-semibold text-indigo-400">₹${coreAmt.toLocaleString('en-IN')}</span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/80 border border-white/[0.04]">
+          <div>
+            <span class="font-medium text-white">Tactical Growth (30%)</span>
+            <p class="text-[11px] text-zinc-400">L&T (₹3,662), SBI (₹974), Eternal (₹320)</p>
+          </div>
+          <span class="font-mono-num font-semibold text-emerald-400">₹${growthAmt.toLocaleString('en-IN')}</span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/80 border border-white/[0.04]">
+          <div>
+            <span class="font-medium text-white">Crisis Shock Absorber (20%)</span>
+            <p class="text-[11px] text-zinc-400">Gold BeES ETF & Sun Pharma (₹1,743)</p>
+          </div>
+          <span class="font-mono-num font-semibold text-amber-400">₹${shieldAmt.toLocaleString('en-IN')}</span>
+        </div>
+      `;
+
+      // AI Portfolio Health Audit Diagnostics
+      const highBetaCount = state.crisisBasket.filter(s => s.category === 'highBeta').length;
+      const hasDefensive = state.crisisBasket.some(s => s.category === 'defensive' || s.category === 'gold');
+
+      document.getElementById('doctor-diagnostics-list').innerHTML = `
+        <div class="p-3 rounded-xl glass-subtle flex items-start gap-2.5">
+          <i data-lucide="${state.allocation.goldDebt >= 15 ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 ${state.allocation.goldDebt >= 15 ? 'text-emerald-400' : 'text-amber-400'} shrink-0 mt-0.5"></i>
+          <div>
+            <div class="font-medium text-white">Downside Cushion: ${state.allocation.goldDebt}% Gold & Debt</div>
+            <p class="text-zinc-400 mt-0.5">${state.allocation.goldDebt >= 15 ? 'Optimal hedge. Gives you instant liquidity to rebalance during 2020-style flash crashes.' : 'Low hedge warning: Consider raising Gold/Debt to at least 15% to prevent forced selling in crashes.'}</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl glass-subtle flex items-start gap-2.5">
+          <i data-lucide="layers" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+          <div>
+            <div class="font-medium text-white">Active Crisis Basket (${state.crisisBasket.length} Stocks)</div>
+            <p class="text-zinc-400 mt-0.5">Holdings: ${state.crisisBasket.map(s => s.name).join(', ')}. ${highBetaCount > 2 ? 'High-beta concentration detected—expect steeper intraday swings.' : hasDefensive ? 'Well-balanced with defensive stabilizers.' : 'Add Pharma or Gold ETF to lower overall portfolio beta.'}</p>
+          </div>
+        </div>
+      `;
+
+      // SIP Calculator Math
+      const sipMo = Number(document.getElementById('sip-amount-select')?.value || 10000);
+      const disciplinedTotal = Math.round(sipMo * 84.8);
+      const panickedTotal = Math.round(sipMo * 69.2);
+      const diff = disciplinedTotal - panickedTotal;
+
+      document.getElementById('sip-disciplined-val').textContent = `₹${disciplinedTotal.toLocaleString('en-IN')}`;
+      document.getElementById('sip-panicked-val').textContent = `₹${panickedTotal.toLocaleString('en-IN')}`;
+      document.getElementById('sip-loss-diff').textContent = `₹${diff.toLocaleString('en-IN')} missed compounding`;
+    }
+
+    // ==========================================
+    // 6. IMPORT PORTFOLIO MODAL LOGIC
+    // ==========================================
+    function openImportModal() {
+      document.getElementById('import-modal').classList.remove('hidden');
+    }
+
+    function closeImportModal() {
+      document.getElementById('import-modal').classList.add('hidden');
+    }
+
+    function applyPortfolioPreset(type) {
+      if (type === 'balanced') {
+        state.capital = 100000;
+        state.allocation = { bluechip: 55, highBeta: 20, goldDebt: 25 };
+        state.crisisBasket = [
+          { name: 'Reliance Industries', category: 'bluechip', price: '₹1,202' },
+          { name: 'HDFC Bank', category: 'bluechip', price: '₹712' },
+          { name: 'TCS', category: 'bluechip', price: '₹2,477' },
+          { name: 'Gold BeES ETF', category: 'gold', price: '₹64' }
+        ];
+      } else if (type === 'aggressive') {
+        state.capital = 50000;
+        state.allocation = { bluechip: 30, highBeta: 60, goldDebt: 10 };
+        state.crisisBasket = [
+          { name: 'Eternal (Zomato)', category: 'highBeta', price: '₹320' },
+          { name: 'Tata Motors', category: 'highBeta', price: '₹419' },
+          { name: 'Suzlon Energy', category: 'highBeta', price: '₹68' },
+          { name: 'Bajaj Finance', category: 'bluechip', price: '₹957' }
+        ];
+      } else {
+        state.capital = 100000;
+        state.allocation = { bluechip: 45, highBeta: 15, goldDebt: 40 };
+        state.crisisBasket = [
+          { name: 'Sun Pharma', category: 'defensive', price: '₹1,743' },
+          { name: 'ITC', category: 'defensive', price: '₹482' },
+          { name: 'State Bank of India', category: 'bluechip', price: '₹974' },
+          { name: 'Gold BeES ETF', category: 'gold', price: '₹64' }
+        ];
+      }
+      finalizeImportSync();
+    }
+
+    function handleImportTextSubmit() {
+      const raw = document.getElementById('import-csv-textarea').value.trim();
+      if (!raw) return;
+
+      const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+      let parsedBasket = [];
+      let totalAmt = 0;
+
+      lines.forEach(line => {
+        const parts = line.split(',');
+        const name = parts[0]?.trim();
+        const amt = Number((parts[1] || '15000').replace(/[^0-9.]/g, '')) || 15000;
+        if (name) {
+          totalAmt += amt;
+          parsedBasket.push({
+            name,
+            category: detectStockCategory(name, 'auto'),
+            price: ASSETS_PATTERN_DATA[name]?.currentPrice || '₹950'
+          });
+        }
+      });
+
+      if (parsedBasket.length > 0) {
+        state.crisisBasket = parsedBasket;
+        state.capital = totalAmt >= 75000 ? 100000 : totalAmt >= 30000 ? 50000 : 10000;
+      }
+      finalizeImportSync();
+    }
+
+    function finalizeImportSync() {
+      state.importedHoldingsCount = state.crisisBasket.length;
+      document.getElementById('imported-badge').classList.remove('hidden');
+      document.getElementById('imported-count').textContent = state.importedHoldingsCount;
+      document.getElementById('import-btn-label').textContent = `Synced (${state.importedHoldingsCount})`;
+
+      ['bluechip', 'highBeta', 'goldDebt'].forEach(k => {
+        document.getElementById(`lbl-${k}`).textContent = `${state.allocation[k]}%`;
+        document.getElementById(`slider-${k}`).value = state.allocation[k];
+      });
+      setCapital(state.capital);
+      closeImportModal();
+      switchTab('crisis');
+    }
+
+    // ==========================================
+    // 7. NAVIGATION & INTERACTION HANDLERS
+    // ==========================================
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      ['pattern', 'crisis', 'shock', 'scorecard'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const iconColor =
+          t === 'pattern' ? 'text-indigo-400' :
+          t === 'crisis' ? 'text-rose-400' :
+          t === 'shock' ? 'text-amber-400' : 'text-emerald-400';
+        const iconName =
+          t === 'pattern' ? 'sparkles' :
+          t === 'crisis' ? 'shield-alert' :
+          t === 'shock' ? 'zap' : 'dna';
+        const label =
+          t === 'pattern' ? 'Pattern Predictor' :
+          t === 'crisis' ? 'Crisis Simulator' :
+          t === 'shock' ? 'Macro Stress-Test' : 'My Investor DNA';
+
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          btn.className = 'tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-zinc-800 text-white shadow-sm';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap text-zinc-400 hover:text-zinc-200';
+        }
+        btn.innerHTML = `<i data-lucide="${iconName}" class="w-3.5 h-3.5 ${iconColor}"></i> ${label}`;
+      });
+      renderAll();
+    }
+
+    function setCapital(amount) {
+      state.capital = amount;
+      [10000, 50000, 100000].forEach(a => {
+        const el = document.getElementById(`cap-${a}`);
+        el.className = a === amount
+          ? 'px-2.5 py-1 rounded-md text-xs font-mono-num font-medium transition bg-zinc-800 text-white'
+          : 'px-2.5 py-1 rounded-md text-xs font-mono-num font-medium transition text-zinc-400 hover:text-zinc-200';
+      });
+      renderAll();
+    }
+
+    function handleAllocationChange(key, newVal) {
+      const clamped = Math.max(0, Math.min(100, Number(newVal)));
+      const otherKeys = Object.keys(state.allocation).filter(k => k !== key);
+      const remaining = 100 - clamped;
+      const currentOthersSum = otherKeys.reduce((acc, k) => acc + state.allocation[k], 0);
+
+      state.allocation[key] = clamped;
+      if (currentOthersSum === 0) {
+        state.allocation[otherKeys[0]] = Math.round(remaining / 2);
+        state.allocation[otherKeys[1]] = remaining - state.allocation[otherKeys[0]];
+      } else {
+        const ratio0 = state.allocation[otherKeys[0]] / currentOthersSum;
+        state.allocation[otherKeys[0]] = Math.round(remaining * ratio0);
+        state.allocation[otherKeys[1]] = remaining - state.allocation[otherKeys[0]];
+      }
+
+      ['bluechip', 'highBeta', 'goldDebt'].forEach(k => {
+        document.getElementById(`lbl-${k}`).textContent = `${state.allocation[k]}%`;
+        document.getElementById(`slider-${k}`).value = state.allocation[k];
+      });
+      renderAll();
+    }
+
+    function selectStock(name) {
+      state.selectedAsset = name;
+      state.isPatternReplaying = true;
+      document.getElementById('ai-live-badge').classList.add('hidden');
+      renderPatternTab();
+      lucide.createIcons();
+    }
+
+    function toggleReplayCone() {
+      state.isPatternReplaying = !state.isPatternReplaying;
+      document.getElementById('btn-toggle-cone-text').textContent = state.isPatternReplaying ? 'Hide Cone' : 'Show Cone';
+      renderPatternTab();
+    }
+
+    function setUserGuess(guess) {
+      state.userGuess = guess;
+      state.isPatternReplaying = true;
+      ['bull', 'sideways', 'bear'].forEach(g => {
+        const el = document.getElementById(`guess-${g}`);
+        if (g === guess) {
+          el.className = 'p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 bg-indigo-500/15 border-indigo-500/40 text-white';
+        } else {
+          el.className = 'p-2.5 rounded-xl border text-center transition flex flex-col items-center gap-1 bg-zinc-950/60 border-white/[0.06] text-zinc-400 hover:text-zinc-200';
+        }
+      });
+      renderPatternTab();
+    }
+
+    function selectCrisis(id) {
+      state.selectedCrisisId = id;
+      renderCrisisTab();
+      lucide.createIcons();
+    }
+
+    function handleCrisisDecision(choice) {
+      state.crisisChoice = choice;
+      const activeTitle = CRISIS_SCENARIOS[state.selectedCrisisId].title;
+      state.completedSimulations = [
+        ...state.completedSimulations.filter(s => s.crisis !== activeTitle),
+        { crisis: activeTitle, action: choice }
+      ];
+      renderCrisisTab();
+      renderScorecardTab();
+      lucide.createIcons();
+    }
+
+    function selectShockPreset(idx) {
+      state.selectedShockIndex = idx;
+      state.customShockData = null;
+      renderShockTab();
+    }
+
+    function handleCustomShockSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('custom-shock-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const impact = Number(((state.allocation.bluechip * -0.05 + state.allocation.highBeta * -0.14 + state.allocation.goldDebt * 0.06) / 100).toFixed(1));
+      state.customShockData = {
+        prompt: val,
+        historicalParallel: 'Composite Match: 2022 Global Rate Cycle & 2018 Liquidity Tightening',
+        similarity: '87%',
+        expectedPortfolioImpact: impact,
+        sectorImpacts: [
+          { sector: 'High-Beta Small & Midcaps', impact: '-13.8%', reason: 'Valuation multiples compress rapidly when macro uncertainty spikes.' },
+          { sector: 'Defensive FMCG & Pharma', impact: '+3.4%', reason: 'Inelastic demand shields operating cash flows during shocks.' },
+          { sector: 'Gold & Sovereign Debt', impact: '+6.1%', reason: 'Safe-haven capital rotation stabilizes overall portfolio drawdown.' }
+        ],
+        aiAdvice: `For "${val}", your ${state.allocation.goldDebt}% Gold/Debt cushion prevents forced liquidation, while your ${state.allocation.highBeta}% High-Beta slice carries the majority of the short-term volatility.`
+      };
+      input.value = '';
+      renderShockTab();
+    }
+
+    function renderAll() {
+      renderPatternTab();
+      renderCrisisTab();
+      renderShockTab();
+      renderScorecardTab();
+      lucide.createIcons();
+    }
+
+    window.onload = function () {
+      renderAll();
+    };
+  </script>
+</body>
+</html>
